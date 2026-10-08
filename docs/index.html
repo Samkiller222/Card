@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c8332b">
+  <meta name="description" content="Scan a Japanese Pokémon card to find the exact print and its market price. Free, runs on your phone.">
+  <title>JP Card Scanner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>JP Card <span>Scanner</span></h1>
+    <p>Scan a Japanese Pokémon card to find the exact print and what it sells for.</p>
+  </header>
+
+  <section class="scan" aria-label="Scan">
+    <div class="scan-button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      Scan a card
+      <input id="camera" class="file-cover" type="file" accept="image/*" capture="environment" aria-label="Scan a card with the camera">
+    </div>
+    <div class="scan-row">
+      <span class="text-button file-wrap">Choose a photo instead
+        <input id="gallery" class="file-cover" type="file" accept="image/*" aria-label="Choose a photo of a card">
+      </span>
+    </div>
+    <p class="tip">Fill the frame with the card, avoid glare, and keep the code in the bottom corner (like <span class="mono">SV2a 205/165</span>) sharp.</p>
+  </section>
+
+  <section id="photo-panel" class="panel" hidden>
+    <div id="status" class="status-row" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <span id="status-text">Reading the card number…</span>
+    </div>
+    <div class="photo-box">
+      <canvas id="photo" aria-label="Your photo. Tap the card number to read it again."></canvas>
+      <div id="tap-mark" class="tap-mark" hidden></div>
+    </div>
+    <p id="photo-hint" class="muted small">Wrong number? Tap the set code and number on the photo to zoom in and read it again.</p>
+  </section>
+
+  <form id="lookup" class="panel lookup" autocomplete="off">
+    <p class="eyebrow">Card code</p>
+    <div class="fields">
+      <label>Set
+        <input id="set-input" name="set" placeholder="SV2a" inputmode="text" autocapitalize="characters" spellcheck="false">
+      </label>
+      <label>Number
+        <input id="num-input" name="number" placeholder="205" inputmode="numeric" spellcheck="false">
+      </label>
+      <button type="submit" class="solid-button">Look up</button>
+    </div>
+    <div id="candidates" class="candidates" hidden></div>
+    <p class="muted small">Type the code yourself any time, or fix what the scanner read.</p>
+  </form>
+
+  <section id="error" class="panel error" hidden role="alert"></section>
+
+  <section id="result" class="panel" hidden aria-live="polite"></section>
+
+  <section class="panel">
+    <div class="history-head">
+      <h2>Recent scans</h2>
+      <button id="clear-history" class="text-button" type="button" hidden>Clear</button>
+    </div>
+    <ul id="history-list"></ul>
+    <p id="history-empty" class="muted small">Cards you look up are saved here, on this phone.</p>
+  </section>
+
+  <footer class="muted small">
+    Card data and prices from <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> (Cardmarket and TCGplayer).
+    Text reading by <a href="https://tesseract.projectnaptha.com" target="_blank" rel="noopener">Tesseract.js</a>.
+    Nothing you scan leaves your phone except the card code.
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="reader.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
