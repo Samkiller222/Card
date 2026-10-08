@@ -25,6 +25,14 @@ If the number is misread, tap the code on the photo to zoom in and read it again
 4. Pick the branch that contains `docs/`, choose the **/docs** folder, then tap **Save**.
 5. After a minute or two, the site is live at `https://<your-username>.github.io/<repo>/`. In Chrome on Android, open it, then tap ⋮ → **Add to Home screen**.
 
+## Android app (`android/`)
+
+A native Android app that does the same job with Google ML Kit, which reads small and slanted print better than the browser. It also reads the card's Japanese name, so when a number fits two sets (like SV4M and SV4K) it can tell them apart.
+
+- **Download:** [jp-card-scanner.apk](https://github.com/Samkiller222/Card/releases/latest/download/jp-card-scanner.apk) from the latest release. Open it on your phone and allow installing from your browser when Android asks.
+- **Builds:** GitHub Actions (`.github/workflows/android.yml`) runs the tests and builds a signed APK on every push that changes `android/`, then publishes it as a new release.
+- **Signing:** the APK is signed with `android/keystore/sideload.jks`, so updates install over the previous version. That key is public in this repo. To sign with a private key instead, add `KEYSTORE_FILE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD` to the build environment (e.g. from GitHub secrets). Switching keys means uninstalling the old app once.
+
 ## Server version
 
 1. Your phone sends the photo to a small Node server.
