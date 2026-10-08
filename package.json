@@ -1,0 +1,16 @@
+{
+  "name": "jp-pokemon-card-scanner",
+  "version": "1.0.0",
+  "description": "Scan a Japanese Pokémon card with your phone camera and look up its current market price.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1"
+  }
+}
