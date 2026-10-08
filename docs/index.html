@@ -21,17 +21,33 @@
   </header>
 
   <section class="scan" aria-label="Scan">
-    <div class="scan-button">
+    <button id="scan-button" class="scan-button" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
       Scan a card
-      <input id="camera" class="file-cover" type="file" accept="image/*" capture="environment" aria-label="Scan a card with the camera">
-    </div>
+    </button>
     <div class="scan-row">
-      <span class="text-button file-wrap">Choose a photo instead
+      <span id="take-photo" class="text-button file-wrap">Take a photo
+        <input id="camera" class="file-cover" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a card">
+      </span>
+      <span class="text-button file-wrap">Choose a photo
         <input id="gallery" class="file-cover" type="file" accept="image/*" aria-label="Choose a photo of a card">
       </span>
     </div>
-    <p class="tip">Fill the frame with the card, avoid glare, and keep the code in the bottom corner (like <span class="mono">SV2a 205/165</span>) sharp.</p>
+    <p class="tip">Hold the card flat in good light and avoid glare. The scanner reads the small code in the bottom corner, like <span class="mono">SV2a 205/165</span>.</p>
+  </section>
+
+  <section id="scanner" class="scanner" hidden aria-label="Camera scanner">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="scanner-shade">
+      <div id="guide" class="guide">
+        <div class="code-zone"><span>code here</span></div>
+      </div>
+    </div>
+    <div class="scanner-top">
+      <button id="close-scanner" class="scanner-chip" type="button">Close</button>
+      <button id="torch" class="scanner-chip" type="button" aria-pressed="false" hidden>Light</button>
+    </div>
+    <p id="scanner-status" class="scanner-status" aria-live="polite">Starting the camera…</p>
   </section>
 
   <section id="photo-panel" class="panel" hidden>

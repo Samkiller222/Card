@@ -21,6 +21,13 @@
         out.push({ number, total });
       }
     }
+    // Slanted slashes often read as 7 or 1: "0707066" is "070/066".
+    const fused = /(?:^|[^0-9])(\d{3})[71](\d{3})(?![0-9])/g;
+    while ((m = fused.exec(text))) {
+      if (!out.some((n) => n.number === m[1] && n.total === m[2]) && Number(m[1]) > 0 && Number(m[2]) > 0) {
+        out.push({ number: m[1], total: m[2], fused: true });
+      }
+    }
     // Promo cards print like "001/SV-P" or "123/S-P".
     const promo = /(\d{3})\s*\/\s*(S[VM]?-P)/gi;
     while ((m = promo.exec(text))) out.push({ number: m[1], total: null, promoSet: m[2].toUpperCase() });
@@ -95,6 +102,68 @@
     return { setId, number: num ? num.number : null, total: num ? num.total : null, candidates };
   }
 
+  // Every plausible {setId, number} reading of the text, most likely first.
+  // The caller checks each against the card database and keeps the first real card.
+  function readings(text, sets) {
+    const byKey = new Map(sets.map((s) => [setKey(s.id), s]));
+    const totalOf = (s) => String(s.cardCount && s.cardCount.official);
+    const found = [];
+    for (const token of text.split(/[^A-Za-z0-9.\-$|]+/)) {
+      if (token.length < 2 || token.length > 8) continue;
+      for (const v of variants(token)) {
+        const set = byKey.get(v);
+        if (set && /\d/.test(set.id) && !found.includes(set)) {
+          found.push(set);
+          break;
+        }
+      }
+    }
+    // via: "code" when the set code was read, "total" when only the printed card count matched
+    const out = [];
+    const add = (setId, number, via) => {
+      if (setId && number && !out.some((r) => r.setId === setId && r.number === number)) out.push({ setId, number, via });
+    };
+    for (const n of findNumbers(text)) {
+      if (n.promoSet) {
+        const set = byKey.get(setKey(n.promoSet));
+        add(set ? set.id : n.promoSet, n.number, "code");
+        continue;
+      }
+      const total = String(Number(n.total));
+      // a set code that agrees with the printed total is the strongest reading
+      for (const s of found) if (totalOf(s) === total) add(s.id, n.number, "code");
+      for (const s of found) add(s.id, n.number, "code");
+      for (const s of sets) if (totalOf(s) === total) add(s.id, n.number, "total");
+    }
+    return out;
+  }
+
+  // Put readings whose set id shares the most letters with text the reader saw
+  // first (e.g. a partly read "sv" favours SV4M and SV4K over BW2), and drop
+  // the ones with nothing in common when some do match.
+  function rankByHint(list, texts) {
+    const tokens = texts.join(" ").toLowerCase().split(/[^a-z0-9.\-]+/).filter((t) => t.length >= 2);
+    const score = (id) => {
+      const key = id.toLowerCase();
+      let best = 0;
+      for (const t of tokens) {
+        for (let len = Math.min(key.length, t.length); len > best; len--) {
+          let hit = false;
+          for (let i = 0; i + len <= key.length && !hit; i++) if (t.includes(key.slice(i, i + len))) hit = true;
+          if (hit) { best = len; break; }
+        }
+      }
+      // a match must include the series letters at the start of the id to count
+      return best >= 2 && tokens.some((t) => t.includes(key.slice(0, 2))) ? best : 0;
+    };
+    const scored = list.map((r) => ({ r, s: r.via === "total" ? score(r.setId) : 99 }));
+    const anyHit = scored.some((x) => x.r.via === "total" && x.s > 0);
+    return scored
+      .filter((x) => !anyHit || x.r.via !== "total" || x.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .map((x) => x.r);
+  }
+
   // TCGdex stores collector numbers zero-padded to 3 digits ("001").
   function localIds(number) {
     const n = String(number).trim().replace(/^0+(?=\d)/, "");
@@ -102,7 +171,7 @@
     return [...new Set(ids)];
   }
 
-  const api = { findNumbers, parseCardText, localIds, variants };
+  const api = { findNumbers, parseCardText, readings, rankByHint, localIds, variants };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.CardReader = api;
 })(typeof window !== "undefined" ? window : globalThis);
